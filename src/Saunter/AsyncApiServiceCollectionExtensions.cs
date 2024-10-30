@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Reflection;
 using LEGO.AsyncAPI.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -16,16 +18,18 @@ namespace Saunter
         /// </summary>
         /// <param name="services">The collection to add services to.</param>
         /// <param name="setupAction">An action used to configure the AsyncAPI options.</param>
+        /// <param name="conventions"></param>
         /// <returns>The service collection so additional calls can b e chained.</returns>
-        public static IServiceCollection AddAsyncApiSchemaGeneration(this IServiceCollection services, Action<AsyncApiOptions>? setupAction = null)
+        public static IServiceCollection AddAsyncApiSchemaGeneration(this IServiceCollection services, Action<AsyncApiOptions>? setupAction = null, IAsyncApiConventionsProvider? conventionsProvider = null)
         {
             services.AddOptions();
 
             services.TryAddSingleton<IAsyncApiDocumentCloner, AsyncApiDocumentSerializeCloner>();
             services.TryAddSingleton<IAsyncApiSchemaGenerator, AsyncApiSchemaGenerator>();
             services.TryAddSingleton<IAsyncApiChannelUnion, AsyncApiChannelUnion>();
-
-            services.TryAddTransient<IAsyncApiDocumentProvider, AttributeDocumentProvider>();
+            services.TryAddTransient<IAsyncApiDocumentProvider, ConventionDocumentProvider>();
+            
+            services.TryAddSingleton<IAsyncApiConventionsProvider>(conventionsProvider ?? new EmptyConventionsProvider());
 
             if (setupAction != null)
             {
@@ -61,5 +65,21 @@ namespace Saunter
             });
             return services;
         }
+    }
+
+    public class EmptyConventionsProvider : IAsyncApiConventionsProvider
+    {
+        public IEnumerable<TypeInfo> GetConsumers(string? apiName) => new List<TypeInfo>();
+
+        public IEnumerable<TypeInfo> GetPublishers(string? apiName) => new List<TypeInfo>();
+
+        public IEnumerable<TypeInfo> GetMessages(string? apiName) => new List<TypeInfo>();
+    }
+
+    public interface IAsyncApiConventionsProvider
+    {
+        IEnumerable<TypeInfo> GetConsumers(string? apiName);
+        IEnumerable<TypeInfo> GetPublishers(string? apiName);
+        IEnumerable<TypeInfo> GetMessages(string? apiName);
     }
 }
