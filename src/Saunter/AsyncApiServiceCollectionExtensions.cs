@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
 using LEGO.AsyncAPI.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -65,21 +63,5 @@ namespace Saunter
             });
             return services;
         }
-    }
-
-    public class EmptyConventionsProvider : IAsyncApiConventionsProvider
-    {
-        public IEnumerable<TypeInfo> GetConsumers(string? apiName) => new List<TypeInfo>();
-
-        public IEnumerable<TypeInfo> GetPublishers(string? apiName) => new List<TypeInfo>();
-
-        public IEnumerable<TypeInfo> GetMessages(string? apiName) => new List<TypeInfo>();
-    }
-
-    public interface IAsyncApiConventionsProvider
-    {
-        IEnumerable<TypeInfo> GetConsumers(string? apiName);
-        IEnumerable<TypeInfo> GetPublishers(string? apiName);
-        IEnumerable<TypeInfo> GetMessages(string? apiName);
     }
 }
